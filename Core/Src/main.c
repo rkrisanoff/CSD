@@ -57,49 +57,17 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 extern void initialise_monitor_handles(void);
 
-/* USER CODE END 0 */
 
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
-  /* USER CODE BEGIN 1 */
-//	uint32_t wait = 500;
-	initialise_monitor_handles();
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* USER CODE BEGIN Init */
-  printf("Hello world!\n");
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  /* USER CODE BEGIN 2 */
-
-  void delay(const int delay_ms){
+void delay(const int delay_ms){
 	  const int start_time = HAL_GetTick();
 	  while (1) {
 		  if (HAL_GetTick() - start_time >= delay_ms){
 			  return;
 		  }
 	  }
-  }
+}
 
-  void flash_diodes(const int overflows){
+void flash_diodes(const int overflows){
 	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);
 	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
 	  delay(500);
@@ -115,10 +83,10 @@ int main(void)
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);
 		  delay(250);
 	  }
-  }
+}
 
 
-  void set_diodes_state(const int value){
+void set_diodes_state(const int value){
 	  if (value < 0 || value > 3){
 		  printf("Wrong value\n");
 		  return;
@@ -133,18 +101,53 @@ int main(void)
 	  } else {
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
 	  }
-  }
+}
+
+
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
+//	uint32_t wait = 500;
+//	initialise_monitor_handles();
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+//  printf("Hello world!\n");
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  /* USER CODE BEGIN 2 */
+   int start_time_pressing;
+   int press_duration = 0;
+   _Bool is_press_watching = 0;
+
+
+   int overflows = 0;
+   int sum_value = 0;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int start_time_pressing;
-  int press_duration = 0;
-  _Bool is_press_watching = 0;
-
-
-  int overflows = 0;
-  int sum_value = 0;
   while (1)
   {
 
@@ -159,20 +162,22 @@ int main(void)
 		  // logic begin
 
 			  if (press_duration >= 400){
-				  sum_value += 1;
-			  } else if (press_duration >= 50) { // cringe
 				  sum_value -= 1;
+			  } else if (press_duration >= 50) { // cringe
+				  sum_value += 1;
 			  }
 
 			  if (sum_value == -1 || sum_value == 4){
 				  if (sum_value == -1){
 					  overflows -= 1;
+					  sum_value = 3;
 				  }
 				  if (sum_value == 4){
 					  overflows += 1;
+					  sum_value = 0;
 				  }
 
-				  sum_value = 0;
+
 				  flash_diodes(overflows);
 			  }
 			  set_diodes_state(sum_value);
